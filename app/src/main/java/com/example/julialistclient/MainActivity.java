@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.widget.ArrayAdapter;
+import android.widget.CalendarView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String HAS_PHONE_NUMBER = ContactsContract.Contacts.HAS_PHONE_NUMBER;
     private static final String PHONE_NUMBER = ContactsContract.CommonDataKinds.Phone.NUMBER;
     private static final String PHONE_CONTACT_ID = ContactsContract.CommonDataKinds.Phone.CONTACT_ID;
+    CalendarView calendarView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +49,21 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        calendarView = findViewById(R.id.calendarView);
+        calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            @Override
+            public void onSelectedDayChange(CalendarView view, int year,
+                                            int month, int dayOfMonth) {
+                int mYear = year;
+                int mMonth = month;
+                int mDay = dayOfMonth;
+                String selectedDate = new StringBuilder().append(mMonth + 1)
+                        .append("-").append(mDay).append("-").append(mYear)
+                        .append(" ").toString();
+                Toast.makeText(getApplicationContext(), selectedDate, Toast.LENGTH_LONG).show();
+            }
+        });
+
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS}, 1);
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -67,9 +84,10 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
-       getAll(this);
+        getAll(this);
 
     }
+
 
     //Получение контактов
     public static ArrayList<Contact> getAll(Context context) {
@@ -87,12 +105,17 @@ public class MainActivity extends AppCompatActivity {
                 HashMap<Integer, ArrayList<String>> phones = new HashMap<>();
                 while (pCur.moveToNext()) {
                     Integer contactId = pCur.getInt(pCur.getColumnIndex(PHONE_CONTACT_ID));
+
                     ArrayList<String> curPhones = new ArrayList<>();
+
                     if (phones.containsKey(contactId)) {
                         curPhones = phones.get(contactId);
+
                     }
-                    curPhones.add(pCur.getString(pCur.getColumnIndex(PHONE_CONTACT_ID)));
+                    curPhones.add(pCur.getString(0));
+
                     phones.put(contactId, curPhones);
+
                 }
                 Cursor cur = cr.query(
                         ContactsContract.Contacts.CONTENT_URI,
@@ -140,13 +163,13 @@ public class MainActivity extends AppCompatActivity {
 
     public void startTest(View view) {
         ArrayList<String> arrayList = new ArrayList<>();
-        for (Contact contact : getAll(this)){
+        for (Contact contact : getAll(this)) {
             String name = contact.get_name();
             arrayList.add(name);
         }
 
-        ArrayAdapter<String> listAdaper = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,arrayList);
+        ArrayAdapter<String> listAdaper = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, arrayList);
         ListView contactList = findViewById(R.id.listView);
         contactList.setAdapter(listAdaper);
-   }
+    }
 }
